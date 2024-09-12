@@ -5,6 +5,7 @@ import traceback
 import random
 
 from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
 from rest_framework import status, permissions
 from rest_framework.decorators import api_view, permission_classes
 
@@ -12,7 +13,7 @@ from rest_framework.decorators import api_view, permission_classes
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def home_page(request):
-    return Response(request.user, status=status.HTTP_200_OK)
+    return Response({"Message": f"Welcome {request.user}!"}, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
@@ -37,6 +38,7 @@ def register_user(request):
         user = User.objects.create(
             username=username, email=email, password=password
         )
+        Token.objects.create(user=user)
         return Response(
             {"message": f"User registered successfully for {user.username}!"}, status=status.HTTP_201_CREATED
         )
