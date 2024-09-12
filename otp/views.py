@@ -120,23 +120,30 @@ def check_otp(request):
 
         if not phone or not otp_code:
             return Response(
-                {"error": "Phone number, and otp are required!"},
+                {"error": "Phone number and OTP are required!"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if not OTPCode.objects.filter(phone=phone).exists():
+        try:
+            stored_otp = OTPCode.objects.get(phone=phone)
+        except OTPCode.DoesNotExist:
             return Response(
-                {"error": "phone isn't registered!"}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Phone number isn't registered!"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        stored_otp = OTPCode.objects.get(phone=phone)
+        if not stored_otp.is_valid():
+            return Response(
+                {"error": "OTP code has expired!"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         if stored_otp.code == otp_code:
             return Response(
                 {"message": "Verification Completed!"}, status=status.HTTP_200_OK
             )
         else:
             return Response(
-                {"error": "OTP code doesn't match, Verification failed!"},
+                {"error": "OTP code doesn't match, verification failed!"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
     except:
