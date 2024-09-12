@@ -71,3 +71,74 @@ def login_user(request):
     except:
         print(traceback.format_exception)
         return Response(status=status.HTTP_409_CONFLICT)
+
+
+def create_otp(phone, is_new=True):
+    otp_code = random.randint(1000, 9999)
+    if is_new:
+        OTPCode.objects.create(phone=phone, code=otp_code)
+    else:
+        old_OTPCode = OTPCode.objects.get(phone=phone)
+        old_OTPCode.code = otp_code
+        old_OTPCode.save()
+    return otp_code
+
+
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def send_otp(request):
+    try:
+        phone = request.data.get("phone")
+
+        if not phone:
+            return Response(
+                {"error": "Phone number is required!"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if OTPCode.objects.filter(phone=phone).exists():
+            otp_code = create_otp(phone, is_new=False)
+        else:
+            otp_code = create_otp(phone, is_new=True)
+
+        # emulate sending otp
+        print(otp_code)
+        return Response(
+            {"message": "OTP send to your phone!"}, status=status.HTTP_200_OK
+        )
+
+    except:
+        print(traceback.format_exception)
+        return Response(status=status.HTTP_409_CONFLICT)
+
+
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def check_otp(request):
+    try:
+        phone = request.data.get("phone")
+        otp_code = request.data.get("otp")
+
+        if not phone or not otp_code:
+            return Response(
+                {"error": "Phone number, and otp are required!"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not OTPCode.objects.filter(phone=phone).exists():
+            return Response(
+                {"error": "phone isn't registered!"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        stored_otp = OTPCode.objects.get(phone=phone)
+        if stored_otp.code == otp_code:
+            return Response(
+                {"message": "Verification Completed!"}, status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {"error": "OTP code doesn't match, Verification failed!"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    except:
+        print(traceback.format_exception)
+        return Response(status=status.HTTP_409_CONFLICT)
