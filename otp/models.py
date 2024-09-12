@@ -7,7 +7,7 @@ class OTPCode(models.Model):
     phone = models.CharField(max_length=30)
     code = models.CharField(max_length=4)
     created_at = models.DateTimeField(
-        auto_now_add=True
+        auto_now=True
     )
 
     def is_valid(self):
