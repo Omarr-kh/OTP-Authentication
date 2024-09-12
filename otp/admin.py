@@ -1,4 +1,4 @@
 from django.contrib import admin
-from .models import OTPCodes
+from .models import OTPCode
 
-admin.site.register(OTPCodes)
+admin.site.register(OTPCode)
